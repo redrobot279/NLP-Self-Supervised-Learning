@@ -52,7 +52,7 @@ def get_transform(model_type="simclr", input_size=32):
         # Standard augmentations for MoCo and Barlow Twins
         return MoCoV2Transform(input_size=32)
     elif model_type.lower() == "barlow_twins":
-        return = BYOLTransform(
+        return BYOLTransform(
             view_1_transform=BYOLView1Transform(input_size=32, gaussian_blur=0.0),
             view_2_transform=BYOLView2Transform(input_size=32, gaussian_blur=0.0),
             )
