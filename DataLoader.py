@@ -4,6 +4,25 @@ import torchvision.transforms as T
 from torch.utils.data import DataLoader, Dataset
 from lightly.transforms.simclr_transform import SimCLRTransform
 
+
+from lightly.loss import NTXentLoss
+from lightly.models.modules import MoCoProjectionHead
+from lightly.models.utils import deactivate_requires_grad, update_momentum
+from lightly.transforms.moco_transform import MoCoV2Transform
+from lightly.utils.scheduler import cosine_schedule
+
+
+
+
+from lightly.loss import BarlowTwinsLoss
+from lightly.models.modules import BarlowTwinsProjectionHead
+from lightly.transforms.byol_transform import (
+    BYOLTransform,
+    BYOLView1Transform,
+    BYOLView2Transform,
+)
+
+
 # Custom dataset wrapper for models like MoCo and SimCLR
 class SSLDataset(Dataset):
     def __init__(self, dataset):
@@ -29,17 +48,15 @@ def get_transform(model_type="simclr", input_size=32):
     if model_type.lower() == "simclr":
         # SimCLR uses its own transformation wrapper
         return SimCLRTransform(input_size=input_size, gaussian_blur=0.1)
-    elif model_type.lower() in ["moco", "barlow_twins"]:
+    elif model_type.lower() == "moco":
         # Standard augmentations for MoCo and Barlow Twins
-        return T.Compose([
-            T.RandomResizedCrop(size=input_size),
-            T.RandomHorizontalFlip(),
-            T.ColorJitter(0.4, 0.4, 0.4, 0.1),
-            T.RandomGrayscale(p=0.2),
-            T.GaussianBlur(kernel_size=3),
-            T.ToTensor(),
-            T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        ])
+        return MoCoV2Transform(input_size=32)
+    elif model_type.lower() == "barlow_twins":
+        return = BYOLTransform(
+            view_1_transform=BYOLView1Transform(input_size=32, gaussian_blur=0.0),
+            view_2_transform=BYOLView2Transform(input_size=32, gaussian_blur=0.0),
+            )
+        
     else:
         raise ValueError(f"Unsupported model type: {model_type}")
 
